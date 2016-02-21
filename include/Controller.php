@@ -98,7 +98,7 @@ class Controller{
 		$modd;
 		$is_disabled='';
 		include("../views/shared/_form.php");
-
+		
 		echo "<table border=0 id=tblForm class='table table-hover'><tbody>";
 		echo "<form id = new_".Inflect::singularize($this->model)." action=".$root_path."controllers/".$this->model."_controller.php method=POST enctype=multipart/form-data;charset=UTF-8>";
 		echo "<input type=hidden id=".$action." name=".$action." />";

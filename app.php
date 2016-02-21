@@ -52,9 +52,12 @@
 	}
 	.info_array{
 		font-family: arial;
+
 		background: #C90;
+
 	}
-	.wow{	font-family: arial}
+	.wow{	font-family: arial;
+		background: #C90}
 </style>
 <body>
 	
