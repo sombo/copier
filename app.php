@@ -54,6 +54,7 @@
 		font-family: arial;
 		background: #C90;
 	}
+	.wow{	font-family: arial}
 </style>
 <body>
 	
