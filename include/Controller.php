@@ -7,7 +7,7 @@ session_start();
 */
 class Controller{
 
-	public $site_name;
+	public $Site_Name;
 	public $obj ;
 	public $model;
 	public $d ;
@@ -18,10 +18,12 @@ class Controller{
 
 	function __construct($hasModel){
 
-		$this->Page_Title = (isset($this->Page_Title)) ? $this->Page_Title : $this->Page_Title = ucwords($this->model);
+		$this->Site_Name = $_POST["site_name"];
 
 		$this->Get_Model();
 
+		$this->Page_Title = (isset($this->Page_Title)) ? $this->Page_Title : $this->Page_Title = ucwords($this->model);
+		
 		if($hasModel)
 			$this->d =  new Database($this->model,null,false);
 
@@ -88,16 +90,21 @@ class Controller{
 	}
 
 
-
-	function Generate_Form($action){
+	function Translate($word,$lang=''){
 		require 'translate.php';
+		$translated_word = (isset($heb[$word])) ? $heb[$word] : $word;
+		
+		return $translated_word;
+	}
+	function Generate_Form($action){
+		// require 'translate.php';
 
 		$root_path = ($action=="edit") ? "../../" : "../" ;
 		
 		$userFieldRequest;
 		$modd;
 		$is_disabled='';
-		include("../views/shared/_form.php");
+		// include("../views/shared/_form.php");
 		
 		echo "<table border=0 id=tblForm class='table table-hover'><tbody>";
 		echo "<form id = new_".Inflect::singularize($this->model)." action=".$root_path."controllers/".$this->model."_controller.php method=POST enctype=multipart/form-data;charset=UTF-8>";
