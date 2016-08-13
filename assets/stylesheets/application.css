@@ -1,4 +1,4 @@
-a{
+/*a{
 	margin-right: 5px;
 }
 li{
@@ -33,8 +33,8 @@ font-style: italic;
 }
 .body{
 	overflow: scroll;
-}
-.nav {
+}*/
+/*.nav {
 	float:none;
 }
 .brand{
@@ -61,24 +61,33 @@ font-style: italic;
 	float: left;
 	margin-bottom: 10px;
 	margin-right: 20px;
-}
-.form{
-	margin-top: 30px;
+}*/
+/*.form{*/
+	/*margin-top: 30px;*/
 	/*width: 380px;*/
-	border: 1px solid #ddd;
-	font-family: "Arial, Helvetica, sans-serif";
-}
-.form h3{text-align: center;}
-input[type="button"], input[type="submit"], input[type="reset"] {
-	width:100px;
-}
+	/*border: 1px solid #ddd;*/
+	/*font-family: "Arial, Helvetica, sans-serif";*/
+/*}*/
+/*.form h3{text-align: center;}*/
+/*input[type="button"], input[type="submit"], input[type="reset"] {*/
+	/*width:100px;*/
+/*}*/
 .controls{
-	text-align: center;
+	/*text-align: center;*/
 	
 }
-#tblForm{margin:auto;}
-select{width:155px;}
-input{width:150px;}
+/*#tblForm{margin:auto;}*/
+/*select{width:155px;}*/
+.input{
+	/*width:150px;*/
+	text-align: center;
+}
+body > .container{
+	padding: 30px 15px 0;
+}
+.details{
+	display:inline-block;
+}
 .error_array{
 	/*font-size: 10px;*/
 	font-family: arial;

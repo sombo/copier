@@ -42,17 +42,25 @@ class Database {
 		$this->form = $this->Set_Form_Object();
 		$this->is_obj = $is_obj;
 		/* check if the call is for specific obj or for the whole table */
+		
 		if($is_obj){
+
 			if($records != null){
+				//die("obj");
 				$this->Set_Object_Records($records);
 				/* check if obj has childs and store the details */
-				if (is_array($this->Has_Many)) {
+			if (is_array($this->Has_Many)) {
 					$this->Set_Object_childs();
+					//die("ssswwww");
 				}
-				if (is_array($this->Belongs_To)) {
+			if (is_array($this->Belongs_To)) {
+					
 					$this->Set_Object_Parent();
-				}
 			}
+
+			}
+		
+			
 		}
 		
 			
@@ -64,7 +72,7 @@ class Database {
 		$q = "SELECT * FROM ".$this->table.";";
 		$res = mysql_query($q);
 		if(!$res)
-			die("error no model ".$this->model);
+			die("error no model ".$this->table."<br/> Form_object");
 		$i = 0 ;
 		while ($i < mysql_num_fields($res)) {
 			 if(!strpos(mysql_field_flags($res, $i),"primary")){
@@ -95,18 +103,26 @@ class Database {
 		foreach ($this->Belongs_To as $parent => $val) {
 				$field = $this->Match_Primary_Key_For_Table($parent);
 			//	$this->Belongs_To[$parent] = $this->object_Records[$field];
+				//die($field);
 				 $this->Parent_Records[$parent][$field] = $this->object_Records[$field];
 				// echo $field;
+				 //print_r($this->object_Records);
+
 				 $q = 'SELECT '.$val.' FROM '.$parent.' WHERE '.$field.'='.$this->object_Records[$field];
 				 $res = mysql_query($q); 
 				 if(!$res)	
-				 	echo (mysql_error().$q);
+				 	echo ($q);
 				 $row = mysql_fetch_row($res);
 				 $this->Parent_Records[$parent][$val] = $row[0]; 
 		}
+		
+		//print_r($this->Parent_Records);
+		// die("wow");
+
 	}
 
 	private function Match_Primary_Key_For_Table($table){
+		//die($table);
 		foreach ($this->table_Fields_Names as $field) {
 			$str = Inflect::singularize($table)."_id";
 			if($str == $field)
@@ -121,6 +137,8 @@ class Database {
 			$q = "SELECT * FROM $val WHERE ".$this->primary_key." = ".$this->object_id.";";
 			
 			$res = mysql_query($q);
+			if (!$res)
+				 die($q);
 			while ( $row = mysql_fetch_assoc($res)) {
 				 $this->Childs_Records[$val][$i++] = $row;
 			}
@@ -344,7 +362,7 @@ class Database {
 		$res = mysql_query($q);		
 	
 		if(!$res){
-			//die(mysql_error().$q);
+			die(mysql_error().$q."365");
 			$this->errors [] = mysql_error().$q;
 			if(!$insert)
 				$_GET["edit"]=$this->object_Records[$this->primary_key];
@@ -361,6 +379,7 @@ class Database {
 			
 		}
 		else
+			// die("22");
 			$_GET["id"] = $_SESSION["id"];
 		
 		return true;
@@ -368,9 +387,10 @@ class Database {
 
 	protected function Make_String_For_Insert_Query(){
 		$fieldsLength = sizeof($this->table_Fields_Names);
+		// die($fieldsLength);
 		$str ="(";
 		for ($i=1; $i < $fieldsLength ; $i++) { 
-			if($this->table_Fields_Names[$i]!= "updated_at")
+			if($this->table_Fields_Names[$i]!= "updated_at" && $this->table_Fields_Names[$i]!="created_at")
 				$str.= $this->table_Fields_Names[$i].",";
 		}
 		
@@ -379,6 +399,7 @@ class Database {
 	
 		$str.="VALUES (";
 		$len = sizeof($this->object_Records);	
+		// die($len);
 		for ($j=1; $j < $len; $j++) { 
 			if($this->form[$this->table_Fields_Names[$j]]=="text" || $this->form[$this->table_Fields_Names[$j]] == "textarea")
 				$str.="'".mysql_real_escape_string($this->object_Records[$this->table_Fields_Names[$j]])."',";
@@ -387,7 +408,7 @@ class Database {
 
 		}
 		$str[strlen($str)-1] = ")";
-		// die($str);
+		//die($str);
 		return $str;
 	}
 
@@ -467,7 +488,7 @@ class Database {
 		$fieldsLength = sizeof($this->table_Fields_Names);
 		
 		for ($j=1; $j < $fieldsLength ; $j++)  
-			if($this->table_Fields_Names[$j]!="updated_at")
+			if($this->table_Fields_Names[$j]!="updated_at" && $this->table_Fields_Names[$j]!="created_at")
 				$str .= $this->table_Fields_Names[$j]." = '".$this->object_Records[$this->table_Fields_Names[$j]]."',"; 		
 			
 		$str[strlen($str)-1] = " ";
@@ -480,6 +501,8 @@ class Database {
 
 		$q = "SELECT * FROM $table ORDER BY $field";
 		$res = mysql_query($q);
+		if(!$res)
+			die(mysql_error());
 		$arr = array();
 		$i=0;
 		while ($row = mysql_fetch_assoc($res)) {

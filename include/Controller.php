@@ -11,52 +11,77 @@ class Controller{
 	public $obj ;
 	public $model;
 	public $d ;
+	public $forgien_keys_widget = array();
 	public $tempp = array();
 	public $form_error = array();
 	public $Page_Title;
 	public $lead;
+	public $form_objects = array();
+	public $temp_keys = array();
+
+	//public $resources = array();
+	//public $matches = array();
 
 	function __construct($hasModel){
 
+		$this->resources = $_POST['resources'];
+		$this->matches = $_POST['matches'];
+		
 		$this->Site_Name = $_POST["site_name"];
 
 		$this->Get_Model();
 
-		$this->Page_Title = (isset($this->Page_Title)) ? $this->Page_Title : $this->Page_Title = ucwords($this->model);
-		
+		$this->Page_Title = (isset($this->Page_Title)) ? $this->Page_Title : ucwords($this->model);
+		echo $_POST["action"];
 		if($hasModel)
 			$this->d =  new Database($this->model,null,false);
-
-
+		
+		
 		if(isset($_SESSION["errors"])){
-			// die("error");
 			$this->form_error  = $_SESSION["errors"];
+			// print_r($_SESSION);
 			$_SESSION["errors"]=null;
 		}
 
 
-		if (isset($_GET["edit"]))
-			$this->edit();
+		if (isset($_GET["edit"])){
+			if($this->Check_If_Object_Exists($_GET["edit"]) != null)
+				$this->edit();
+			else
+				die("error Object Not Found...(  (edit)");
+		}
 		else if(isset($_GET["new"]))
 			$this->create();
-		else if(isset($_GET["id"]))
-			$this->show();
-		else if (isset($_GET["root"]))
-			$this->$_GET["root"]();
+
+		else if(isset($_GET["id"])){
+			if($this->Check_If_Object_Exists($_GET["id"]) != null)
+				$this->show();
+			else
+				die("error Object Not Found...(   (show)");
+		}
+		// else if (isset($_GET["root"]))
+		// 	$this->$_GET["root"]();
 
 		else if(isset($_POST["delete"]))
 			$this->delete();
 		else if(isset($_POST["new"]))
 			$this->Set_New_Records("new");
-		else if(isset($_POST["edit"]))
+		else if(isset($_POST["edit"]))// die("here");
+			// die("hello World!!!!");
 			$this->Set_New_Records("edit");
 
 
 		else
+			// die("root");
 			$this->index();
 
 		//$this->render("index");
 	}
+
+	function Check_If_Object_Exists($object_Id){
+		return $this->d->Find_By($object_Id);
+	}
+	
 	public function get_json($hiddenField,$visual){
 		echo json_encode($this->tempp[$hiddenField]);
 		//$this->tempp=null;
@@ -86,133 +111,198 @@ class Controller{
 		$str[strlen($str)-2] = "]";
 		$str.="</p>";
 		echo $str;
-
 	}
-
 
 	function Translate($word,$lang=''){
 		require 'translate.php';
 		$translated_word = (isset($heb[$word])) ? $heb[$word] : $word;
-		
+		//die($word);
 		return $translated_word;
 	}
+	
+	function Get_Table_Name_From_Forigen_Key($key_name){
+
+		$pieces = explode("_",$key_name);// cut the field_id to get last field
+		// if(sizeof($pieces)>)
+		$mod = Inflect::pluralize($pieces[sizeof($pieces)-2]);// make it plural for model
+		// die($mod);
+		$len = sizeof($pieces);
+		$str= ""; // table name
+		for ($i=0; $i < $len -2 ; $i++)
+			 $str.=$pieces[$i].'_';
+			 	
+		return $str.=$mod;
+	}
+
+	function Get_Value_From_Field($table,$field){
+
+	}
+	function Set_Forigen_Table_Data($forigen_key_table_name,$label,$record){
+		$table = new Database($forigen_key_table_name,null,true);
+		
+		foreach ($table->tableRecord as $record ) {
+			
+			if($record[$label]!=null){
+						
+				if($this->obj->Has_One[$forigen_key_table_name] != null)
+					$this->forgien_keys_widget[$label][$record[$label]] = $record[$this->obj->Has_One[$forigen_key_table_name]];
+				else if($this->obj->Belongs_To[$forigen_key_table_name] != null)
+					$this->forgien_keys_widget[$label][$record[$label]] = $record[$this->obj->Belongs_To[$forigen_key_table_name]];
+			}
+				
+		}
+		
+	}
+
+	function Get_Name_For_Label($forigen_key_table_name,$key='false'){
+		/* get pretty name for input $label instead of *_id($key) */
+		
+		$temp = ($key==='true') ? $this->Get_Table_Name_From_Forigen_Key($forigen_key_table_name) : $forigen_key_table_name;	
+		if($this->obj->Has_One[$temp]!=null)
+			$lab = $this->obj->Has_One[$temp];
+		else
+			$lab = $this->obj->Belongs_To[$temp];
+	
+		return $lab;
+	}
+
+	function Generate_Displayble_Object_Properties($order='primary'){
+		// $arr = $this->obj->OrderArrayByKey()
+		$arr = array();
+		// die("wowow");
+		foreach ($this->obj->object_Records as $field_name => $field_value) {
+			if($this->obj->keys[$field_name] === "primary")
+				$arr["index"] = $field_value;
+			else if($this->obj->keys[$field_name] === "forigen"){
+				$temp_field_name = $this->Get_Name_For_Label($field_name,'true');
+				$table_name = $this->Get_Table_Name_From_Forigen_Key($field_name);
+				//die($field_name);
+				$tempDb = new Database($table_name,null,true);
+				$table_name = ucfirst($table_name);
+
+				$tempModel = new $table_name($tempDb->Find_By($field_value));
+				
+				$arr[$temp_field_name] = $tempModel->object_Records[$temp_field_name];
+				$tempModel = null;
+				$tempDb = null;
+
+			}
+			else
+				$arr[$field_name] = $field_value;		
+			
+		}
+		return $arr;
+	}
 	function Generate_Form($action){
-		// require 'translate.php';
+
+		require_once("FormWidget.php");
+		require_once("ForgienKeySelect.php");
 
 		$root_path = ($action=="edit") ? "../../" : "../" ;
 		
-		$userFieldRequest;
-		$modd;
-		$is_disabled='';
-		// include("../views/shared/_form.php");
+		$widgets = array();
+
+		$data = array();
 		
-		echo "<table border=0 id=tblForm class='table table-hover'><tbody>";
-		echo "<form id = new_".Inflect::singularize($this->model)." action=".$root_path."controllers/".$this->model."_controller.php method=POST enctype=multipart/form-data;charset=UTF-8>";
-		echo "<input type=hidden id=".$action." name=".$action." />";
+		$w_index = 0;
+		
+		$is_disabled='';
+		// $selected_id='';
+		
 		foreach ($this->obj->form as $label => $wtype) {
 
-			if($this->obj->keys[$label]=="forigen"){ // if this input is forigen key get approve values
-			 	$pieces = explode("_",$label);// cut the field_id to get last field
-			 	$mod = Inflect::pluralize($pieces[sizeof($pieces)-2]);// make it plural for model
-			 	$len = sizeof($pieces);
-			 	$str= ""; // table name
-			 	for ($i=0; $i < $len - 2 ; $i++)
-			 		$str.=$pieces[$i].'_';
+			if($this->obj->keys[$label]=="forigen"){ 
 
-			 	$str.=$mod;
+			/* Create Select Widget with all the data that related */
 
-			 	$table = new Database($str,null,true);
+			 	$forigen_key_table_name = $this->Get_Table_Name_From_Forigen_Key($label);
+			 	
+			 	$this->Set_Forigen_Table_Data($forigen_key_table_name,$label,$record);
 
-				foreach ($table->tableRecord as $record ) {
-					if($record[$label]!=null){
-						if($this->obj->Has_One[$str] != null)
-							$this->tempp [$label][$record[$label]]= $record[$this->obj->Has_One[$str]];
-						else if($this->obj->Belongs_To[$str] != null)
-							$this->tempp [$label][$record[$label]]= $record[$this->obj->Belongs_To[$str]];
+			 	$label_name = $this->Get_Name_For_Label($forigen_key_table_name);
+
+				$selected_id = $this->obj->object_Records[$label];
+				try{
+					foreach ($this->forgien_keys_widget[$label] as $id => $value) 
+						$data[$id] = $value;
 					}
+				catch(Exception $e){
+					die( "label : ".$label."<br/>id : ".$id."<br/>value : ".$value);
 				}
-
-				/* get pretty name for input $label instead of *_id($key) */
-
-				if($this->obj->Has_One[$str]!=null)
-					$lab = $this->obj->Has_One[$str];
-				else
-					$lab = $this->obj->Belongs_To[$str];
-
-				/*/*/
-
-				$lab = (isset($hebTranlation[$lab])) ? $hebTranlation[$lab] : $lab ;//check if translation exists
-
-				echo "<tr><td><label for=$label >".$lab." :</label> </td>";
-
-				echo "<td><select id=".$label." name=".$label." class=fields>";
-
-				foreach ($this->tempp[$label] as $id => $value) {
-						if($id == $this->obj->object_Records[$label])
-							echo "<option value=".$id." selected='selected' >".$value."</option>";
-						else
-							echo "<option value=".$id."  >".$value."</option>";
-				}
-				echo "</select></tr>";
-			 }
+				$forigen_key_name = $label;
+				$widgets[$w_index] = new ForgienKeySelect($forigen_key_name,$selected_id,"select",$label_name,$data);
+				
+			}
+			else if ($label == "phone") {
+				$widgets[$w_index] = new FormWidget("tel",$label,$data);
+			}
 	 		else if ($wtype == "textarea"){
-
-				$tempLabel = (isset($hebTranlation[$label])) ? $hebTranlation[$label] : $label ;
-
-				echo "<tr><td><$label for=$label >".$tempLabel." :</label></td>";
-				echo "<td><textarea name=$label id=".$label." ".$is_disabled.">lol</textarea></td></tr>";
+	 			$widgets[$w_index] = new FormWidget($wtype,$label,"");
 	 		}
 			else{
-
-				$tempLabel = (isset($hebTranlation[$label])) ? $hebTranlation[$label] : $label ;
-
-				if ($wtype != "hidden")
-					echo "<tr ><td><$label for=$label >$tempLabel :</label></td>";
-
-				echo "<td><input type=$wtype name=$label id=$label class=fields value=".$this->obj->object_Records[$label]." ".$is_disabled."></input></td></tr>";
+				$data[$w_index] = $this->obj->object_Records[$label];
+				$widgets[$w_index] = new FormWidget($wtype,$label,$data);	
 			}
-
+			$w_index++;
+			$data = null;
 		}
 
-		echo "<tr><th colspan=2 $class=form-actions><div class=controls><input type = submit value = שמור class=btn />  <input type = reset  value = אפס class=btn /></th></tr>";
-
-		echo "</form>";
-		echo "</tbody></table>";
-
-
+		return $widgets;	
 	}
+	function Get_Values_From_Keys($table_record){
+		foreach ($table_record as $field => $value) {
+			if($this->obj->keys[$field] == 'forigen'){
+				$tbl_name = $this->Get_Table_Name_From_Forigen_Key($field);
+				$tempDb = new Database($tbl_name,null,true);
+				$tbl_name = ucfirst($tbl_name);
+				$temp_Model_Record = new $tbl_name($tempDb-Find_By($table_record[$field]));
+				$this->Get_Values_From_Keys($temp_Model_Record);
+				$this->temp_keys[$table_record[0]][$field] = $value; 
+			}
+			else
+				$this->temp_keys[$table_record[0]][$field] = $value;
 
-
+		}
+		print_r("rec_end");
+		return $this->temp_keys;
+	}
 	function Set_New_Records($action){
-		// die(print_r($this->obj->object_Records));
-		 foreach ($_POST as $key => $value) {
-		 	// if($this->obj->keys[$key]=="unique")
-
-		 	if($key != $action || $this->obj->keys[$key] != "unique")
+		
+		foreach ($_POST as $key => $value) {
+			
+			if($key != $action || $this->obj->keys[$key] != "unique")
 		 		$this->obj->object_Records[$key] = $value;
-		 }
-			// if(is_array($this->obj->Before_Save)){
-			// 	foreach ($this->obj->Before_Save as $func)
-			// 		$this->obj->$func();
-			// }
-			$insertQuery=false;
-			if($action=="new"){$insertQuery=true;}
+		 		
+		 	}
+			
+			/*if(is_array($this->obj->Before_Save)){
+				foreach ($this->obj->Before_Save as $func)
+					$this->obj->$func();
+			}*/
+			
+			// $insertQuery=false;
+			// if($action=="new"){$insertQuery=true;}
 
+			$insertQuery = ($action === "new") ? true : false ;
+			
 			if($this->obj->Save($insertQuery)){
-				header("Location: ../".$this->model."/".$_GET["id"]);
+				echo "success";
+				//header("Location: ../".$this->model."/".$_GET["id"]);
 
 			}
 			else{
 				// die(print_r($this->obj->errors));
 			 	$_SESSION["errors"] = $this->obj->errors;
 			 	if($action=='edit')
-					header("Location: ../".$this->model."/".$_GET['edit']."/edit");
+					echo " edit failed";
+					//header("Location: ../".$this->model."/".$_GET['edit']."/edit");
 				else
-					
-					header("Location: ../".$this->model."/new");
+					echo "new failed";	
+				//	header("Location: ../".$this->model."/new");
 
 			}
 	}
+	
 	function Get_Model(){
 		$class = get_class($this);
 		$pieces = explode("_",$class);
@@ -227,6 +317,7 @@ class Controller{
 			$this->model = trim($this->model);
 		}
 	}
+	
 	function render($action,$layout=''){
 		$params = explode("/",$_SERVER['REQUEST_URI']);
 		if($action=="edit")
@@ -243,27 +334,18 @@ class Controller{
 		$template = "../views/".$this->model."/".$action.".php";
 		$_SESSION["yield"] = $template;
 		include_once "../views/layouts/_".$layout.".php";
-
 	}
 
 	function ajax($msg){
 		echo trim($msg);
 	}
-	function All($order=''){
-		require 'translate.php';
-
-		$this->table_name = $this->getTableNameFromForgienKey($this->obj->primary_key);
-		$fieldsLength = sizeof($this->obj->table_Fields_Names);
-		echo "<table id=".$this->getTableNameFromForgienKey($this->obj->primary_key)." class='table table-hover lp $this->table_name'> ";
-		echo "<tr class=headers>";
-		echo "<th>#</th><th>מ.ז</th>";
-		//echo $fieldsLength;
-
-		for($i=1; $i < $fieldsLength; $i++){
-			$lab = $this->obj->table_Fields_Names[$i];
-			 if($this->obj->keys[$this->obj->table_Fields_Names[$i]] == "forigen"){
-
-			 	$str = $this->getTableNameFromForgienKey($this->obj->table_Fields_Names[$i]);
+	
+	function Get_Table_Headers($i){
+		$lab = $this->obj->table_Fields_Names[$i];
+		
+		if($this->obj->keys[$this->obj->table_Fields_Names[$i]] == "forigen"){
+			
+			$str = $this->Get_Table_Name_From_Forigen_Key($this->obj->table_Fields_Names[$i]);
 
 		 		if($this->obj->Has_One[$str] != null){
 				 	$lab = $this->obj->Has_One[$str];
@@ -272,52 +354,61 @@ class Controller{
 				else{
 
 					$lab = $this->obj->Belongs_To[$str];
-					//die("$str");
 				}
 
 		 	}
 		 	//die($this->table_name);
 			$lab = (isset($hebTranlation[$lab])) ? $hebTranlation[$lab] : $lab ;//check if translation exists
 
-			echo "<th>".$lab."</th>";
-		}
-
-		echo"</tr>";
-		include('../views/shared/_records.php');
-		echo "</table>";
-		//die(print_r($this->d->tableRecord));
-		$i = 0;
-
-
-
-
-
-		// echo "<div  id=test><ul>";
-		// foreach ($this->obj->tableRecord as $field => $value) {
-		// 	echo "<li><div id=$field>";
-		// 	echo   "<span class=content>".$value[$this->obj->table_Fields_Names[1]]."</span>";
-		// 	echo   "<span class=timestamp>".$this->obj->prettyDate($value["updated_at"])."</span>";
-		// 	echo   "<div id=act>";
-		// 	echo   		"<a class=action href=".$field."/edit>ערוך</a>";
-		// 	echo   		"<a class=action href=".$field.">הצג</a>";
-		// 	echo   		"<a class='action del' href=".$this->obj->table." class=del>מחק</a><hr>";
-		// 	echo 	"</div>";
-		// 	echo  "</div></li>";
-	 // 	}
-		// 	echo "</div>";
+			return $this->Translate($lab);
 
 	}
-	public function getTableNameFromForgienKey($field){
-		$pieces = explode("_",$field);// cut the field_id to get last field
-		$mod = Inflect::pluralize($pieces[sizeof($pieces)-2]);// make it plural for model
-		$len = sizeof($pieces);
-		$str= ""; // table name
+	function All($order=''){
+		
+		$this->table_name = $this->Get_Table_Name_From_Forigen_Key($this->obj->primary_key);
+		$fieldsLength = sizeof($this->obj->table_Fields_Names);
+		
+		
+		include('../views/shared/_records.php');
+	
 
-		for ($j=0; $j < $len-2  ; $j++)
-			$str.=$pieces[$j].'_';
-
-		return $str.=$mod;
-}
+	}
+	
+	function prettyDate($date){ 
+		 $time = @strtotime($date); 
+		 $now = time(); 
+		 $ago = $now - $time; 
+		 if($ago < 60){ 
+		 	$when = round($ago); 
+		 	$s = ($when == 1)?"שנייה":"שניות"; 
+		 	return "לפני $when $s "; 
+		 }
+		 elseif($ago < 3600){ 
+		 	$when = round($ago / 60); 
+		 	$m = ($when == 1)?"דקה":"דקות"; 
+		 	return "לפני $when $m "; 
+		 }
+		 elseif($ago >= 3600 && $ago < 86400){ 
+		 	$when = round($ago / 60 / 60); 
+		 	$h = ($when == 1)?"שעה":"שעות"; 
+		 	return "לפני $when $h "; 
+		 }
+		 elseif($ago >= 86400 && $ago < 2629743.83){ 
+		 	$when = round($ago / 60 / 60 / 24); 
+		 	$d = ($when == 1)?"יום":"ימים"; 
+		 	return "לפני $when $d "; 
+		 }
+		 elseif($ago >= 2629743.83 && $ago < 31556926){ 
+		 	$when = round($ago / 60 / 60 / 24 / 30.4375); 
+		 	$m = ($when == 1)?"חודש":"חודשים"; 
+		 	return "לפני $when $m "; 
+		 }
+		 else{ 
+		 	$when = round($ago / 60 / 60 / 24 / 365); 
+		 	$y = ($when == 1)?"שנה":"שנים"; 
+		 	return "לפני $when $y "; 
+		 } 
+	} 
 
 
 }

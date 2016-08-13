@@ -1,4 +1,4 @@
-<?
+<?php
 //require_once('../models/Welcome.php');
 require_once('../include/Controller.php');
 

@@ -1,16 +1,16 @@
-<?
+<?php
 
 require_once('../include/Database.php');
 
 class Users extends Database{
-	public $validates = array(
-			"name"=>array("empty","min(2)"),
-			"phone"=>array("empty","min(9)","max(10)")
-			);
+
+	public $Has_Many = array("pools");
+	
+	public $validates = array("address"=>"empty");
+
 	function __construct($records = null){
 		parent::__construct("users",$records,true);
 		
-
 		//$this->tableRecord = null;
 
 		

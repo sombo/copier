@@ -1,43 +1,53 @@
+<table id=<?php echo $this->table_name;?> class='table table-hover lp <?php echo $this->table_name;?> '>
+	<tr class='headers success'>
+		<td>#</td>
+		<?php for($i=1; $i < $fieldsLength; $i++){ ?>
+			<td><?php echo $this->Get_Table_Headers($i);?></td>
+		<?php } ?>	
+	</tr>
+
+
 <?
 if($order!='')
-	$tempTable = $this->obj->OrderArrayByKey($this->table_name,$order);
-
+	$table_records = $this->obj->OrderArrayByKey($this->table_name,$order);
+	
 	$t = 1 ;
-foreach ($tempTable as $key => $value) {
+foreach ($table_records as $key => $value) {
 
-			echo "<tr class=indexTable title='לחץ לפרטים נוספים...'><td>".$t++."</td>";
-			 $i++;
-			 // die(print_r($this->d->tableRecord));
+	echo "<tr class='indexTable' id = line_".$t." title='לחץ לפרטים נוספים...'><td>".$t++."</td>";
+	foreach ($value as $field => $val) {
+		if($this->obj->keys[$field] == "forigen"){
+			$tableName = $this->Get_Table_Name_From_Forigen_Key($field);
 
-			foreach ($value as $field => $val) {
-				if($this->obj->keys[$field] == "forigen"){
-					$tableName = $this->getTableNameFromForgienKey($field);
+			if($this->obj->Has_One[$tableName] != null)
+		 		$lab = $this->obj->Has_One[$tableName];
+			else
+				$lab = $this->obj->Belongs_To[$tableName];
+				
 
-					if($this->obj->Has_One[$tableName] != null){
-				 		$lab = $this->obj->Has_One[$tableName];
-						// die($lab);
-					}
-					else{
+			$tempDb = new Database($tableName,null,true);
+			$tableName = ucfirst($tableName);
 
-						$lab = $this->obj->Belongs_To[$tableName];
-						//die($lab);
-					}
+			$tempModel = new $tableName($tempDb->Find_By($val));
 
-					$tempDb = new Database($tableName,null,true);
+			echo "<td>".$tempModel->object_Records[$lab]."</td>";
 
-					$tempModel = new $tableName($tempDb->Find_By($val));
-
-					echo "<td>".$tempModel->object_Records[$lab]."</td>";
-
-					$tempModel = null;
-					$tempDb = null;
-				}
-				else
-					echo "<td class=$field>".$val."</td>";
-
-				$i++;
-			}
-			 echo "</tr>";
+			$tempModel = null;
+			$tempDb = null;
 		}
+		else if($this->obj->keys[$field] != "primary"){
+			/* Check if data are in DATE format if true display it in preetier format */
+			$temp_val = ($field == "updated_at" || $field == "created_at") ? $this->prettyDate($val) : $val ; 
+			echo "<td id=$field>".$temp_val."</td>";
+		}
+		else if($this->obj->keys[$field] == "primary"){
+			echo "<td style=display:none id=obj_id>".$val."</td>";
+		}
+		
+	}
+	 echo "</tr>";
+}
 
 ?>
+
+</table>
