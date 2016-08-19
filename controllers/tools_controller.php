@@ -7,7 +7,7 @@ require_once('../include/Controller.php');
 // /**
 // * 
 // */
-class Tools_controller extends Controller
+class tools_controller extends Controller
 {
 	
 	public $obj ;

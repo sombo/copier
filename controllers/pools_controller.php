@@ -8,7 +8,7 @@ require_once('../include/Controller.php');
 // /**
 // * 
 // */
-class Pools_controller extends Controller
+class pools_controller extends Controller
 {
 	
 	public $obj ;

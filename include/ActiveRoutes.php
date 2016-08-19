@@ -14,16 +14,17 @@ class ActiveRoutes {
 	function __construct(){
 		session_start();
 		$this->uri =  explode("/",$_SERVER['REQUEST_URI']);
-		$_POST['site_name'] = $this->uri[2];
+		
 		//$this->root ;
 		require_once '../routes.php';
+		$_POST['site_name'] = $this->project_Name;
 
 		$this->Genrate_Route();
 
 	}
 
 	public function Genrate_Route(){
-		
+		// die(print_r($this->matches));
 		$_POST["resources"] = $this->resources;
 		$_POST["matches"] = $this->matches;
 		$_POST["root"] = $this->root;
@@ -74,7 +75,7 @@ class ActiveRoutes {
 			require_once ("../controllers/".$arr[0]."_controller.php");
 		}
 		else{  // go to root //
-			echo "OOpppsss !!! :( Page Not Found (Maybe u forget to include it in routes.php)!<br/>";
+			echo "OOpppsss !!! :( Page Not Found (Maybe u forget to include it in routes.php)!<br/>".$this->matches[2];
 		}
 	}
 	

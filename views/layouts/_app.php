@@ -16,7 +16,7 @@ $_serv="http://" . $server_name;
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title><?echo $this->site_name."/".$this->Page_Title;?></title>
+	<title><?echo $this->Site_Name." \\ ".$this->Page_Title;?></title>
 	
 	<meta name="description" content="">
   <meta name="author" content="">

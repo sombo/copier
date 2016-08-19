@@ -31,7 +31,7 @@ class Controller{
 
 		$this->Get_Model();
 
-		$this->Page_Title = (isset($this->Page_Title)) ? $this->Page_Title : ucwords($this->model);
+		$this->Page_Title =  $this->Translate($this->model);
 		echo $_POST["action"];
 		if($hasModel)
 			$this->d =  new Database($this->model,null,false);
