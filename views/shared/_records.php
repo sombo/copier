@@ -38,7 +38,7 @@ foreach ($table_records as $key => $value) {
 		else if($this->obj->keys[$field] != "primary"){
 			/* Check if data are in DATE format if true display it in preetier format */
 			$temp_val = ($field == "updated_at" || $field == "created_at") ? $this->prettyDate($val) : $val ; 
-			echo "<td id=$field>".$temp_val."</td>";
+			echo "<td id=$field>".$this->Translate($temp_val)."</td>";
 		}
 		else if($this->obj->keys[$field] == "primary"){
 			echo "<td style=display:none id=obj_id>".$val."</td>";

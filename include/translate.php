@@ -1,5 +1,12 @@
 <?php
 		$heb = array("created_at"=>"נוצר בתאריך",
+					   "tools"=>"דגם מכונה",
+					   "pools"=>"מאגר מכונות",
+					   "problems"=>"תקלות",
+					   "problem_desc"=>"תיאור תקלה",
+					   "paper_misfeed"=>"תקיעות נייר",
+					   "quality"=>"איכות צילום",
+					   "no_toner"=>"נגמר הטונר",
 					   "serial_number"=>"מספר סידורי",
 					   "index"=>"אינדקס",
 					   "brand"=>"יצרן",

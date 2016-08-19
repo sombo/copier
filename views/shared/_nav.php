@@ -26,19 +26,20 @@
         </li>
         
       </ul> -->
-    <?php  foreach ($this->resources as $model => $lol) { ?>
-        <ul class="nav navbar-nav navbar-right">
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><?php echo $this->Translate($model);?> <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-              <li><a class="pull-right" href="http://localhost/~kfircohen/MyFrame/<?php echo $model;?>" ><?php echo $this->Translate("show");?></a></li>
-              <li><a class="pull-right" href="http://localhost/~kfircohen/MyFrame/<?php echo $model;?>/new" ><?php echo $this->Translate("new");?></a></li>   
-            </ul>
-          </li>
-        </ul>
+    <?php  foreach ($this->resources as $model => $show_in_nav) { 
+              if($show_in_nav){?>
+                <ul class="nav navbar-nav navbar-right">
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><?php echo $this->Translate($model);?> <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      <li><a class="pull-right" href="http://localhost/~kfircohen/MyFrame/<?php echo $model;?>" ><?php echo $this->Translate("show");?></a></li>
+                      <li><a class="pull-right" href="http://localhost/~kfircohen/MyFrame/<?php echo $model;?>/new" ><?php echo $this->Translate("new");?></a></li>   
+                    </ul>
+                  </li>
+                </ul>
       
       
-    <?php } ?>
+    <?php }} ?>
     <ul class="nav navbar-nav navbar-right">
     <?php 
           foreach ($this->matches as $label => $path) {

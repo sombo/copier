@@ -78,8 +78,8 @@ class ActiveRoutes {
 		}
 	}
 	
-	public function Resources($resource) {
-			$this->resources[$resource] = true;
+	public function Resources($resource, $show_in_nav = true) {
+			$this->resources[$resource] = $show_in_nav;
 	}
 	public function Root($path){
 		$this->root = $path;
