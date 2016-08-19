@@ -69,8 +69,8 @@ class Controller{
 		else if(isset($_POST["edit"]))// die("here");
 			// die("hello World!!!!");
 			$this->Set_New_Records("edit");
-
-
+		else if(isset($_POST["action"]))
+			 $this->$_POST["action"]();
 		else
 			// die("root");
 			$this->index();

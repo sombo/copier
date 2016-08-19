@@ -21,6 +21,19 @@ class service_calls_controller extends Controller
 
 	}
 	
+	function GetModelForBrand(){
+		$brand_id = $_POST["brand_id"];
+		$machine_models = array();
+		$tools_Db = new Database("tools",null,true);
+		foreach($tools_Db->tableRecord as $row){
+				if($row['brand_id'] == $brand_id)
+					array_push($machine_models,$row['model']); 
+			
+		}
+		$tools_Db = null;
+		echo "?".json_encode($machine_models);
+		
+	}
 	function create(){
 		$this->lead = "Create new service_calls";
 		$this->render("new");
@@ -65,6 +78,8 @@ class service_calls_controller extends Controller
 		else
 			 $this->ajax($_SESSION["errors"]);
 	}
+
+	
 }
 
 	$a = new service_calls_controller(true);

@@ -55,6 +55,7 @@ $_serv="http://" . $server_name;
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="http://<?=$server_name?>/assets/js/bootstrap.min.js"></script>
     <script src="http://<?=$server_name?>/assets/scripts/application.js"></script>
+    <script src="http://<?=$server_name?>/assets/scripts/service_calls.js"></script>
 	<? #@include_once ("../views/shared/_foot.php");?>
 	<? #@include_once ("../views/shared/scripts.php");?>
 </body>
