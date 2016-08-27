@@ -1,4 +1,4 @@
-<?
+<?php
 require_once('../models/service_calls.php');
 require_once('../include/Controller.php');
 
@@ -44,12 +44,12 @@ class service_calls_controller extends Controller
 		
 		/* Get All Models Needed */
 		$tools_Db = new Database("tools",null,true);
-		$this->tools = $tools_Db->tableRecord;
+		$this->tools = $tools_Db->OrderArrayByKey("tools","model");
 		$tools_Db = null;
 
 
 		$brands_Db = new Database("brands",null,true);
-		$this->brands = $brands_Db->tableRecord;
+		$this->brands = $brands_Db->OrderArrayByKey("brands","brand");
 		$brands_Db = null;
 
 		

@@ -37,12 +37,12 @@ $_serv="http://" . $server_name;
       <!-- <div class="page-header">
         <h1>Sticky footer with fixed navbar</h1>
       </div> -->
-      <div class="row">
+     <!-- <div class="row"> !-->
         <?		
 			   include $_SESSION["yield"];
 			   $_SESSION["yield"] = null;
 		    ?>
-    </div>
+    <!-- </div> !-->
 </div>
 <!-- <footer class="footer">
       <div class="container">
